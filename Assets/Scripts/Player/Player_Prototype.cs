@@ -47,10 +47,14 @@ public class Player_Prototype : MonoBehaviour
 
         transform.position += vec * Time.deltaTime * speed;
         
-        // test //
-        property_hp--;
-        Debug.Log(property_hp);
-        // test //
+    }
+
+    void OnTriggerStay2D(Collider2D other)
+    {
+        if(other.CompareTag("Enamy"))
+        {
+            property_hp = property_hp - 1;
+        }
     }
 }
 
