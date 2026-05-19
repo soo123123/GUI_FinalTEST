@@ -1,3 +1,4 @@
+using System.Collections;
 using JetBrains.Annotations;
 // using Microsoft.Unity.VisualStudio.Editor;
 using Unity.Properties;
@@ -10,6 +11,8 @@ public class Player_Prototype : MonoBehaviour
     private float hp;
     private float max_hp = 100f;
     [SerializeField] private Image hpBar; //ui오브젝트 image컴포넌트 참조 변수
+    bool isTouching = false;
+    [SerializeField]private float monster_damage = 1;
 
     // 프로퍼티
     public float property_hp
@@ -49,11 +52,31 @@ public class Player_Prototype : MonoBehaviour
         
     }
 
-    void OnTriggerStay2D(Collider2D other)
+    void OnTriggerEnter2D(Collider2D other)
     {
         if(other.CompareTag("Enamy"))
         {
-            property_hp = property_hp - 1;
+            isTouching = true;
+            StartCoroutine(DamageRoutine()); // 데미지 딜레이 함수 실행
+        }
+    }
+
+    void OnTriggerExit2D(Collider2D collision)
+    {
+        if(collision.CompareTag("Enamy"))
+        {
+            isTouching = false;
+        }
+    }
+
+    IEnumerator DamageRoutine() // IEnumerator == 저장함수처럼 동작함
+    {
+        while(isTouching)
+        {
+            property_hp -= monster_damage;
+            Debug.Log(property_hp);
+
+            yield return new WaitForSeconds(1f); // 1초 대기
         }
     }
 }
@@ -70,3 +93,7 @@ public class Player_Prototype : MonoBehaviour
     // 이미지 체력바 객체에 실제 ui 이미지 넣기 == Image hpBar -> ui 컴포넌트 넣기
     // hp ui에 이미지 삽입
     // hp ui - image type = Filled && Fill Method = Horizontal && Fill Origin = Left로 설정 -> 이미지를 실제로 동작하게 하는 작업
+// 3. 몹 플레이어 접촉 시 지속 피해
+    // ontriggerenter - bool값
+    // bool값으로 데미지 로직 관리
+    // ontriggerexit - 빠져나가면 bool값 변경 및 데미지 로직 중단

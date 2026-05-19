@@ -534,6 +534,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Player_Prototype
   hpBar: {fileID: 1504790839}
+  monster_damage: 20
   speed: 10
 --- !u!212 &535736397
 SpriteRenderer:
