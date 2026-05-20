@@ -8,26 +8,31 @@ using UnityEngine.UI;
 
 public class Player_Prototype : MonoBehaviour
 {
+    public float moveSpeed = 10.0f;
     private float hp;
-    private float max_hp = 100f;
+    private float maxHp = 100f;
+    private float knockbackPower = 5f;
+    private Rigidbody2D rb;
     [SerializeField] private Image hpBar; //ui오브젝트 image컴포넌트 참조 변수
-    bool isTouching = false;
-    [SerializeField]private float monster_damage = 1;
+    [SerializeField]private float monsterDamage = 1;
+    private float lastDamageTime = -1f;
+    private float damageCooldown = 1f; // 데미지를 받고 다음 데미지까지의 딜레이(무적시간)
 
     // 프로퍼티
-    public float property_hp
+    public float currentHp
     {
         get{return hp;}
         set
         {
-            hp = Mathf.Clamp(value, 0, max_hp);
-            hpBar.fillAmount = hp / max_hp;    
+            hp = Mathf.Clamp(value, 0, maxHp);
+            hpBar.fillAmount = hp / maxHp;    
         }
     }
 
     void Start()
     {
-        property_hp = 100;
+        rb = GetComponent<Rigidbody2D>();
+        currentHp = 100;
     }
 
     void Update()
@@ -35,7 +40,6 @@ public class Player_Prototype : MonoBehaviour
         Move();
     }
 
-    public float speed = 10.0f;
     void Move()
     {
         // 0. 위치에 대한 값을 수시로 변경하기 위해 Update()에 넣기
@@ -48,37 +52,27 @@ public class Player_Prototype : MonoBehaviour
         float y = Input.GetAxisRaw("Vertical");
         Vector3 vec = new Vector3(x, y, 0);
 
-        transform.position += vec * Time.deltaTime * speed;
+        transform.position += vec * Time.deltaTime * moveSpeed;
         
     }
 
-    void OnTriggerEnter2D(Collider2D other)
+    void OnTriggerStay2D(Collider2D other)
     {
-        if(other.CompareTag("Enamy"))
+        if(other.CompareTag("Enemy"))
         {
-            isTouching = true;
-            StartCoroutine(DamageRoutine()); // 데미지 딜레이 함수 실행
+            if(Time.time - lastDamageTime >= damageCooldown)
+            {
+                currentHp -= monsterDamage;
+                Debug.Log(currentHp);
+
+                Vector2 knockDir = (transform.position - other.transform.position).normalized;
+                rb.AddForce(knockDir * knockbackPower, ForceMode2D.Impulse);
+
+                lastDamageTime = Time.time;
+            }
         }
     }
 
-    void OnTriggerExit2D(Collider2D collision)
-    {
-        if(collision.CompareTag("Enamy"))
-        {
-            isTouching = false;
-        }
-    }
-
-    IEnumerator DamageRoutine() // IEnumerator == 저장함수처럼 동작함
-    {
-        while(isTouching)
-        {
-            property_hp -= monster_damage;
-            Debug.Log(property_hp);
-
-            yield return new WaitForSeconds(1f); // 1초 대기
-        }
-    }
 }
 
 // --- //
@@ -94,6 +88,5 @@ public class Player_Prototype : MonoBehaviour
     // hp ui에 이미지 삽입
     // hp ui - image type = Filled && Fill Method = Horizontal && Fill Origin = Left로 설정 -> 이미지를 실제로 동작하게 하는 작업
 // 3. 몹 플레이어 접촉 시 지속 피해
-    // ontriggerenter - bool값
-    // bool값으로 데미지 로직 관리
-    // ontriggerexit - 빠져나가면 bool값 변경 및 데미지 로직 중단
+    // 조건 1: 데미지를 입으면 무조건 1초의 무적시간이 부여된다.
+    // 조건 1 구현: 데미지를 입은 시각을 변수(lastDamageTime)에 저장한 뒤, 현재 시각과 비교 했을 때 1초보다 같거나 클 경우에만 데미지를 다시 입히는 식으로 조건문 구성
