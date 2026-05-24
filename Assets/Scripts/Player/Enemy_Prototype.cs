@@ -4,6 +4,8 @@ public class Enemy_Prototype : MonoBehaviour
 {
     Transform player;
     private Rigidbody2D rb;
+    private Vector2 randomDirection; // 플레이어 무적동안 이동 방향
+    private float randomMoveTimer; // 랜덤 이동 시간
     [SerializeField]private float moveSpeed = 5f;
     void Start()
     {
@@ -13,15 +15,33 @@ public class Enemy_Prototype : MonoBehaviour
 
     void FixedUpdate()
     {
-        MoveToPlayer();
+        if(player.gameObject.layer == LayerMask.NameToLayer("InvinciblePlayer"))
+        {
+            RandomMove();
+        }
+        else
+        {
+            MoveToPlayer();
+        }
     }
 
     void MoveToPlayer()
     {
-        // transform.position = Vector3.MoveTowards(transform.position, player.position, speed * Time.deltaTime);
         Vector2 dir = (player.position - transform.position).normalized;
-
         rb.MovePosition(rb.position + dir * moveSpeed * Time.fixedDeltaTime);
+    }
+
+    void RandomMove()
+    {
+        randomMoveTimer -= Time.fixedDeltaTime;
+
+        if(randomMoveTimer <= 0)
+        {
+            randomDirection = Random.insideUnitCircle.normalized;
+            randomMoveTimer = 0.5f; // 하드코딩 나중에 수정할 것.(유틸 모듈에 합쳐도 될듯)
+        }
+
+        rb.MovePosition(rb.position + randomDirection * moveSpeed * 0.5f * Time.fixedDeltaTime);
     }
 }
 

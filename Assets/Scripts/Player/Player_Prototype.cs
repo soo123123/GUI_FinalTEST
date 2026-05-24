@@ -13,10 +13,10 @@ public class Player_Prototype : MonoBehaviour
     private float maxHp = 100f;
     private float knockbackPower = 5f;
     private Rigidbody2D rb;
-    [SerializeField] private Image hpBar; //ui오브젝트 image컴포넌트 참조 변수
+    [SerializeField] private Image hpBar; // ui오브젝트 image컴포넌트 참조 변수
     [SerializeField]private float monsterDamage = 1;
-    private float lastDamageTime = -1f;
-    private float damageCooldown = 1f; // 데미지를 받고 다음 데미지까지의 딜레이(무적시간)
+
+    private bool isInvincible; // 데미지 함수 + 무적 적용 함수 bool값
 
     // 프로퍼티
     public float currentHp
@@ -58,19 +58,39 @@ public class Player_Prototype : MonoBehaviour
 
     void OnTriggerStay2D(Collider2D other)
     {
-        if(other.CompareTag("Enemy"))
+        if(other.CompareTag("Enemy") && !isInvincible)
         {
-            if(Time.time - lastDamageTime >= damageCooldown)
-            {
-                currentHp -= monsterDamage;
-                Debug.Log(currentHp);
-
-                Vector2 knockDir = (transform.position - other.transform.position).normalized;
-                rb.AddForce(knockDir * knockbackPower, ForceMode2D.Impulse);
-
-                lastDamageTime = Time.time;
-            }
+            Debug.Log("함수 호출 전: "+currentHp);
+            TaskDamage(monsterDamage, other.transform);
         }
+    }
+
+    void TaskDamage(float damage, Transform enemy) // 데미지 함수
+    {
+        currentHp -= damage;
+        Debug.Log("데미지 함수: "+currentHp);
+        Vector2 knockDir = (transform.position - enemy.position).normalized;
+
+        //this
+        rb.linearVelocity = Vector2.zero;
+        rb.AddForce(knockDir * knockbackPower, ForceMode2D.Impulse);
+        //this
+
+        StartCoroutine(InvincibleCoroutine());
+    }
+
+    IEnumerator InvincibleCoroutine()  // 무적 함수
+    {
+        isInvincible = true;
+
+        Debug.Log("무적함수: "+currentHp);
+
+        gameObject.layer = LayerMask.NameToLayer("InvinciblePlayer");
+        yield return new WaitForSeconds(1f);
+
+        gameObject.layer = LayerMask.NameToLayer("Default");
+
+        isInvincible = false;
     }
 
 }
@@ -88,5 +108,7 @@ public class Player_Prototype : MonoBehaviour
     // hp ui에 이미지 삽입
     // hp ui - image type = Filled && Fill Method = Horizontal && Fill Origin = Left로 설정 -> 이미지를 실제로 동작하게 하는 작업
 // 3. 몹 플레이어 접촉 시 지속 피해
-    // 조건 1: 데미지를 입으면 무조건 1초의 무적시간이 부여된다.
-    // 조건 1 구현: 데미지를 입은 시각을 변수(lastDamageTime)에 저장한 뒤, 현재 시각과 비교 했을 때 1초보다 같거나 클 경우에만 데미지를 다시 입히는 식으로 조건문 구성
+    // 조건 1: 적 콜라이더 닿으면 데미지 입기
+    // 조건 2: 데미지와 동시에 무적시간 1초 부여
+        // 구현 1: 트리거 안에 if (tag == enemy) than 데미지 + 무적시간 함수 넣기
+        // 구현 2: 무적 함수에서 플레이어 레이어를 무적 레이어로 변경하고 1초의 딜레이를 준뒤 다시 기본 레이어로 변경.(유니티 설정에서 physics2d에서 레이어 콜라이션에서 무적 레이어는 enemy레이어 데미지 안받게 설정)
