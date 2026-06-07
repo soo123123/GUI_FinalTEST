@@ -6,7 +6,7 @@ using UnityEngine;
 
 using UnityEngine.UI;
 
-public class Player_Prototype : MonoBehaviour
+public class Player : MonoBehaviour
 {
     public float moveSpeed = 10.0f;
     private float hp;

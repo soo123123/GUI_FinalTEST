@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class Enemy_Prototype : MonoBehaviour
+public class Enemy : MonoBehaviour
 {
     Transform player;
     private Rigidbody2D rb;

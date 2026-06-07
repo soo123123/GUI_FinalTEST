@@ -4,7 +4,7 @@ using UnityEngine;
 public class WeaponController : MonoBehaviour
 {
     private Transform target;
-
+    [SerializeField]private GameObject bullet_prefab;
     void Update()
     {
         FindClosestEnemy();
@@ -12,6 +12,11 @@ public class WeaponController : MonoBehaviour
         if(target != null)
         {
             RotateToTarget();
+        }
+
+        if(Input.GetKeyDown(KeyCode.Space))
+        {
+            BulletShoot();
         }
     }
 
@@ -40,5 +45,10 @@ public class WeaponController : MonoBehaviour
         Vector2 dir = target.position - transform.position;
         float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
         transform.rotation = Quaternion.Euler(0,0,angle);
+    }
+
+    void BulletShoot()
+    {
+        Instantiate(bullet_prefab, transform.position, transform.rotation);
     }
 }
