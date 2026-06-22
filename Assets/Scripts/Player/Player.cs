@@ -1,9 +1,10 @@
 using System.Collections;
+using System.Linq.Expressions;
 using JetBrains.Annotations;
 // using Microsoft.Unity.VisualStudio.Editor;
 using Unity.Properties;
 using UnityEngine;
-
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class Player : MonoBehaviour
@@ -53,6 +54,15 @@ public class Player : MonoBehaviour
         Vector3 vec = new Vector3(x, y, 0);
 
         transform.position += vec * Time.deltaTime * moveSpeed;
+
+        float limitX = 20f;
+        float limitY = 20f;
+
+        transform.position = new Vector3(
+            Mathf.Clamp(transform.position.x, -limitX, limitX),
+            Mathf.Clamp(transform.position.y, -limitY, limitY),
+            transform.position.z
+        );
         
     }
 
@@ -68,15 +78,26 @@ public class Player : MonoBehaviour
     void TaskDamage(float damage, Transform enemy) // 데미지 함수
     {
         currentHp -= damage;
-        Debug.Log("데미지 함수: "+currentHp);
-        Vector2 knockDir = (transform.position - enemy.position).normalized;
 
-        //this
+        if(currentHp <= 0)
+        {
+            Die();
+            return;
+        }
+
+        Vector2 knockDir = (transform.position - enemy.position).normalized;
+        
         rb.linearVelocity = Vector2.zero;
         rb.AddForce(knockDir * knockbackPower, ForceMode2D.Impulse);
-        //this
 
         StartCoroutine(InvincibleCoroutine());
+    }
+
+    void Die()
+    {
+        Time.timeScale = 0f;
+        GameManager.SurvivalTime = GameTimer.ElapsedTime;
+        SceneManager.LoadScene("GameOverScene");
     }
 
     IEnumerator InvincibleCoroutine()  // 무적 함수

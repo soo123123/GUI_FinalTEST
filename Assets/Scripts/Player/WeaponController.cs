@@ -1,3 +1,4 @@
+using System;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
 
@@ -5,6 +6,8 @@ public class WeaponController : MonoBehaviour
 {
     private Transform target;
     [SerializeField]private GameObject bullet_prefab;
+    [SerializeField]private float attackSpeed = 0.5f;
+    private float attackTimer;
     void Update()
     {
         FindClosestEnemy();
@@ -12,11 +15,13 @@ public class WeaponController : MonoBehaviour
         if(target != null)
         {
             RotateToTarget();
-        }
+            attackTimer -= Time.deltaTime;
 
-        if(Input.GetKeyDown(KeyCode.Space))
-        {
-            BulletShoot();
+            if(attackTimer <= 0)
+            {
+                BulletShoot();
+                attackTimer = attackSpeed;
+            }
         }
     }
 
